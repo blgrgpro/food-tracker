@@ -71,13 +71,20 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
             <CardContent className="pt-0">
               <div className="flex flex-col divide-y">
                 {trip.items.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between py-2.5">
-                    <span className="text-sm">{item.item_name}</span>
-                    {item.quantity && (
-                      <Badge variant="secondary" className="text-xs">
-                        {item.quantity}
-                      </Badge>
-                    )}
+                  <div key={item.id} className="flex items-center justify-between py-2.5 gap-3">
+                    <span className="text-sm flex-1">{item.item_name}</span>
+                    <div className="flex items-center gap-2">
+                      {item.quantity && (
+                        <Badge variant="secondary" className="text-xs">
+                          {item.quantity}
+                        </Badge>
+                      )}
+                      {item.price != null && (
+                        <span className="text-sm font-semibold text-primary">
+                          €{Number(item.price).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

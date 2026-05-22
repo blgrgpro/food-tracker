@@ -29,6 +29,11 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const autoSubtotal = boughtItems.reduce((sum, i) => {
+    return i.price != null ? sum + i.price : sum;
+  }, 0);
+  const hasAutoSubtotal = boughtItems.some((i) => i.price != null);
+
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
@@ -46,7 +51,7 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-1.5">
+        <Button size="sm" className="gap-1.5 rounded-xl">
           <ShoppingBag className="h-4 w-4" />
           End trip
         </Button>
@@ -57,8 +62,8 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
         </DialogHeader>
         <form action={handleSubmit} className="flex flex-col gap-4 mt-2">
           {/* Items preview */}
-          <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">{boughtCount} items in cart</p>
+          <div className="rounded-xl bg-muted/50 border border-border p-3 text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground mb-1">{boughtCount} items in cart</p>
             <p className="text-xs line-clamp-2">
               {boughtItems.map((i) => i.name).join(", ")}
             </p>
@@ -69,14 +74,14 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
             <Input
               id="store_name"
               name="store_name"
-              placeholder="e.g. Whole Foods, Trader Joe's"
+              placeholder="e.g. Rewe, Aldi, Lidl"
               required
               className="h-12 text-base"
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="total_cost">Total cost ($) *</Label>
+            <Label htmlFor="total_cost">Total cost (€) *</Label>
             <Input
               id="total_cost"
               name="total_cost"
@@ -85,8 +90,14 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
               min="0"
               placeholder="0.00"
               required
+              defaultValue={hasAutoSubtotal ? autoSubtotal.toFixed(2) : undefined}
               className="h-12 text-base"
             />
+            {hasAutoSubtotal && (
+              <p className="text-xs text-muted-foreground">
+                Auto-calculated from item prices: €{autoSubtotal.toFixed(2)}. You can edit this.
+              </p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -101,7 +112,7 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" size="lg" disabled={isPending} className="mt-1">
+          <Button type="submit" size="lg" disabled={isPending} className="mt-1 rounded-xl">
             {isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />

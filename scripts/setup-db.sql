@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS items (
   id         SERIAL PRIMARY KEY,
   name       VARCHAR(255) NOT NULL,
   quantity   VARCHAR(100),
+  price      NUMERIC(10,2),
   status     VARCHAR(20)  NOT NULL DEFAULT 'pending'
                CHECK (status IN ('pending', 'bought')),
   created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
@@ -23,7 +24,8 @@ CREATE TABLE IF NOT EXISTS trip_items (
   id         SERIAL PRIMARY KEY,
   trip_id    INTEGER      NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
   item_name  VARCHAR(255) NOT NULL,
-  quantity   VARCHAR(100)
+  quantity   VARCHAR(100),
+  price      NUMERIC(10,2)
 );
 
 -- Optional indexes

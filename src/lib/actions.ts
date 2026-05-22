@@ -16,12 +16,14 @@ export async function getItems(): Promise<Item[]> {
 export async function addItem(formData: FormData): Promise<void> {
   const name = formData.get("name") as string;
   const quantity = (formData.get("quantity") as string) || null;
+  const priceRaw = formData.get("price") as string;
+  const price = priceRaw ? parseFloat(priceRaw) : null;
 
   if (!name?.trim()) return;
 
   await sql`
-    INSERT INTO items (name, quantity, status)
-    VALUES (${name.trim()}, ${quantity?.trim() || null}, 'pending')
+    INSERT INTO items (name, quantity, price, status)
+    VALUES (${name.trim()}, ${quantity?.trim() || null}, ${price ?? null}, 'pending')
   `;
   revalidatePath("/");
 }
@@ -86,8 +88,8 @@ export async function createTrip(formData: FormData): Promise<{ id: number }> {
 
   // Copy bought items to trip_items
   await sql`
-    INSERT INTO trip_items (trip_id, item_name, quantity)
-    SELECT ${tripId}, name, quantity FROM items WHERE status = 'bought'
+    INSERT INTO trip_items (trip_id, item_name, quantity, price)
+    SELECT ${tripId}, name, quantity, price FROM items WHERE status = 'bought'
   `;
 
   // Remove bought items from active list

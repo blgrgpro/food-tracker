@@ -8,6 +8,7 @@ export interface Item {
   id: number;
   name: string;
   quantity: string | null;
+  price: number | null;
   status: ItemStatus;
   created_at: string;
 }
@@ -25,6 +26,7 @@ export interface TripItem {
   trip_id: number;
   item_name: string;
   quantity: string | null;
+  price: number | null;
 }
 
 export interface TripWithItems extends Trip {
