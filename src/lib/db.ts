@@ -1,6 +1,24 @@
-import { sql } from "@vercel/postgres";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
-export { sql };
+let _sql: NeonQueryFunction<false, false> | null = null;
+
+export function getSql(): NeonQueryFunction<false, false> {
+  if (!_sql) {
+    const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+    if (!connectionString) throw new Error("No database connection string set (DATABASE_URL or POSTGRES_URL)");
+    _sql = neon(connectionString);
+  }
+  return _sql;
+}
+
+export const sql: NeonQueryFunction<false, false> = new Proxy({} as NeonQueryFunction<false, false>, {
+  apply(_target, _thisArg, args) {
+    return (getSql() as unknown as (...a: unknown[]) => unknown)(...args);
+  },
+  get(_target, prop) {
+    return (getSql() as unknown as Record<string | symbol, unknown>)[prop];
+  },
+});
 
 export type ItemStatus = "pending" | "bought";
 
