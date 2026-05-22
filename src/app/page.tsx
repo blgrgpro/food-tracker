@@ -9,8 +9,8 @@ export default async function HomePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Shopping List</h1>
-        <p className="text-muted-foreground text-sm mt-1">Tap to mark as bought</p>
+        <h1 className="text-3xl font-bold page-title">Shopping List</h1>
+        <p className="page-subtitle text-sm mt-1">Tap items to mark as bought</p>
       </div>
       <ShoppingList initialItems={items} />
     </div>

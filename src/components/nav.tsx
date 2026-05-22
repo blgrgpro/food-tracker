@@ -15,7 +15,7 @@ export function Nav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/20 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto max-w-lg flex">
         {links.map(({ href, label, icon: Icon }) => {
           const isActive = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -24,7 +24,7 @@ export function Nav() {
               key={href}
               href={href}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-medium transition-colors",
+                "flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-semibold transition-colors",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >

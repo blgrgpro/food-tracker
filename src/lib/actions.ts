@@ -42,6 +42,19 @@ export async function clearBoughtItems(): Promise<void> {
   revalidatePath("/");
 }
 
+export async function updateItem(
+  id: number,
+  name: string,
+  quantity: string | null,
+  price: number | null
+): Promise<void> {
+  await sql`
+    UPDATE items SET name = ${name.trim()}, quantity = ${quantity?.trim() || null}, price = ${price}
+    WHERE id = ${id}
+  `;
+  revalidatePath("/");
+}
+
 // ─── Trips ────────────────────────────────────────────────────────────────────
 
 export async function getTrips(): Promise<Trip[]> {

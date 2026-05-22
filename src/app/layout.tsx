@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Grocery Tracker",
+  title: "Family Grocery Tracker",
   description: "Family grocery shopping tracker",
 };
 
@@ -30,9 +26,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="min-h-full bg-background">
-        <main className="mx-auto max-w-lg px-4 pt-6 pb-24">{children}</main>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
+      <body className="min-h-full">
+        {/* Background image with overlay */}
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/background.jpg')" }}
+        />
+        <div className="fixed inset-0 -z-10 bg-gradient-to-b from-black/60 via-black/50 to-black/70" />
+
+        <main className="mx-auto max-w-lg px-4 pt-6 pb-24">
+          {children}
+        </main>
         <Nav />
       </body>
     </html>
