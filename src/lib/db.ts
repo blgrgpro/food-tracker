@@ -2,7 +2,7 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
 let _sql: NeonQueryFunction<false, false> | null = null;
 
-export function getSql(): NeonQueryFunction<false, false> {
+function getSql(): NeonQueryFunction<false, false> {
   if (!_sql) {
     const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
     if (!connectionString) throw new Error("No database connection string set (DATABASE_URL or POSTGRES_URL)");
@@ -11,14 +11,18 @@ export function getSql(): NeonQueryFunction<false, false> {
   return _sql;
 }
 
-export const sql: NeonQueryFunction<false, false> = new Proxy({} as NeonQueryFunction<false, false>, {
-  apply(_target, _thisArg, args) {
-    return (getSql() as unknown as (...a: unknown[]) => unknown)(...args);
-  },
-  get(_target, prop) {
-    return (getSql() as unknown as Record<string | symbol, unknown>)[prop];
-  },
-});
+// Proxy target must be callable for the apply trap to fire on tagged template calls
+export const sql = new Proxy(
+  (function () {}) as unknown as NeonQueryFunction<false, false>,
+  {
+    apply(_target, _thisArg, args) {
+      return (getSql() as unknown as (...a: unknown[]) => unknown)(...args);
+    },
+    get(_target, prop) {
+      return (getSql() as unknown as Record<string | symbol, unknown>)[prop];
+    },
+  }
+);
 
 export type ItemStatus = "pending" | "bought";
 
