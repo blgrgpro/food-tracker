@@ -61,9 +61,11 @@
   border-color: hsl(var(--border));
 }
 
-body {
+html, body {
+  min-height: 100%;
   font-family: var(--font-sans, "Poppins", sans-serif);
   color: hsl(var(--foreground));
+  background: transparent;
 }
 
 /* Glass card style used throughout the app */
