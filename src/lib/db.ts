@@ -31,6 +31,7 @@ export interface Item {
   name: string;
   quantity: string | null;
   price: number | null;
+  category: string | null;
   status: ItemStatus;
   created_at: string;
 }
@@ -49,6 +50,13 @@ export interface TripItem {
   item_name: string;
   quantity: string | null;
   price: number | null;
+  category: string | null;
+}
+
+export interface CategoryStat {
+  category: string;
+  total: number;
+  item_count: number;
 }
 
 export interface TripWithItems extends Trip {

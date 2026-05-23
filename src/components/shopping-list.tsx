@@ -15,14 +15,28 @@ interface ShoppingListProps {
   initialItems: Item[];
 }
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  "Produce":     "🥬",
+  "Dairy":       "🥛",
+  "Meat & Fish": "🥩",
+  "Bakery":      "🍞",
+  "Snacks":      "🍫",
+  "Beverages":   "🧃",
+  "Household":   "🧹",
+  "Other":       "📦",
+};
+
 export function ShoppingList({ initialItems }: ShoppingListProps) {
   const [items, setItems] = useState(initialItems);
   const [isPending, startTransition] = useTransition();
 
   const pendingItems = items.filter((i) => i.status === "pending");
-  const boughtItems = items.filter((i) => i.status === "bought");
+  const boughtItems  = items.filter((i) => i.status === "bought");
   const boughtSubtotal = boughtItems.reduce((sum, i) => (i.price != null ? sum + Number(i.price) : sum), 0);
   const hasBoughtPrices = boughtItems.some((i) => i.price != null);
+
+  const total = items.length;
+  const progressPct = total > 0 ? Math.round((boughtItems.length / total) * 100) : 0;
 
   function handleAdd(formData: FormData) {
     const name = formData.get("name") as string;
@@ -34,6 +48,7 @@ export function ShoppingList({ initialItems }: ShoppingListProps) {
       name: name.trim(),
       quantity: quantity?.trim() || null,
       price: null,
+      category: null,
       status: "pending",
       created_at: new Date().toISOString(),
     };
@@ -95,6 +110,22 @@ export function ShoppingList({ initialItems }: ShoppingListProps) {
         </Button>
       </form>
 
+      {/* Progress bar */}
+      {total > 0 && (
+        <div className="-mt-1">
+          <div className="flex items-center justify-between text-xs text-white/60 mb-1.5 px-0.5">
+            <span>{boughtItems.length} of {total} ticked off</span>
+            <span className="font-semibold">{progressPct}%</span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-white/20 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Stats row */}
       <div className="flex items-center justify-between">
         <div className="flex gap-2 flex-wrap items-center">
@@ -134,12 +165,19 @@ export function ShoppingList({ initialItems }: ShoppingListProps) {
 
       {/* Empty state */}
       {items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-            <ShoppingCart className="h-10 w-10 text-white/70" />
+        <div className="flex flex-col items-center justify-center py-16 gap-5 text-center">
+          <div className="relative">
+            <div className="w-28 h-28 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+              <ShoppingCart className="h-14 w-14 text-white/35" />
+            </div>
+            <div className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-primary shadow-lg flex items-center justify-center">
+              <Plus className="h-5 w-5 text-white" />
+            </div>
           </div>
-          <p className="text-xl font-semibold text-white">List is empty</p>
-          <p className="text-sm text-white/70">Add items above to get started</p>
+          <div>
+            <p className="text-xl font-bold text-white">Your list is empty</p>
+            <p className="text-sm text-white/55 mt-1">Add your first item above to get started</p>
+          </div>
         </div>
       )}
 
@@ -153,6 +191,7 @@ export function ShoppingList({ initialItems }: ShoppingListProps) {
               onToggle={handleToggle}
               onDelete={handleDelete}
               onUpdated={handleUpdated}
+              categoryEmoji={CATEGORY_EMOJI}
             />
           ))}
         </div>
@@ -171,6 +210,7 @@ export function ShoppingList({ initialItems }: ShoppingListProps) {
               onToggle={handleToggle}
               onDelete={handleDelete}
               onUpdated={handleUpdated}
+              categoryEmoji={CATEGORY_EMOJI}
             />
           ))}
         </div>
@@ -184,11 +224,13 @@ function ItemRow({
   onToggle,
   onDelete,
   onUpdated,
+  categoryEmoji,
 }: {
   item: Item;
   onToggle: (item: Item) => void;
   onDelete: (id: number) => void;
   onUpdated: (updated: Item) => void;
+  categoryEmoji: Record<string, string>;
 }) {
   const isBought = item.status === "bought";
 
@@ -212,7 +254,7 @@ function ItemRow({
       </button>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className={cn("text-base font-medium", isBought && "line-through text-muted-foreground")}>
             {item.name}
           </span>
@@ -224,6 +266,11 @@ function ItemRow({
           {item.price != null && (
             <span className="text-xs font-semibold text-primary bg-primary/10 rounded-full px-2 py-0.5">
               €{Number(item.price).toFixed(2)}
+            </span>
+          )}
+          {item.category && (
+            <span className="text-xs text-muted-foreground bg-muted/80 rounded-full px-2 py-0.5">
+              {categoryEmoji[item.category] ?? "🛒"} {item.category}
             </span>
           )}
         </div>

@@ -14,6 +14,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateItem } from "@/lib/actions";
 import type { Item } from "@/lib/db";
+import { cn } from "@/lib/utils";
+
+const CATEGORIES = [
+  { label: "Produce",    emoji: "🥬" },
+  { label: "Dairy",      emoji: "🥛" },
+  { label: "Meat & Fish",emoji: "🥩" },
+  { label: "Bakery",     emoji: "🍞" },
+  { label: "Snacks",     emoji: "🍫" },
+  { label: "Beverages",  emoji: "🧃" },
+  { label: "Household",  emoji: "🧹" },
+  { label: "Other",      emoji: "📦" },
+];
 
 interface EditItemDialogProps {
   item: Item;
@@ -23,6 +35,7 @@ interface EditItemDialogProps {
 export function EditItemDialog({ item, onUpdated }: EditItemDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [category, setCategory] = useState<string | null>(item.category ?? null);
 
   function handleSubmit(formData: FormData) {
     const name = formData.get("name") as string;
@@ -32,16 +45,16 @@ export function EditItemDialog({ item, onUpdated }: EditItemDialogProps) {
 
     if (!name?.trim()) return;
 
-    onUpdated({ ...item, name: name.trim(), quantity: quantity?.trim() || null, price });
+    onUpdated({ ...item, name: name.trim(), quantity: quantity?.trim() || null, price, category });
     setOpen(false);
 
     startTransition(async () => {
-      await updateItem(item.id, name, quantity, price);
+      await updateItem(item.id, name, quantity, price, category);
     });
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) setCategory(item.category ?? null); }}>
       <DialogTrigger asChild>
         <button
           className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors p-1 rounded-lg hover:bg-primary/10"
@@ -93,6 +106,27 @@ export function EditItemDialog({ item, onUpdated }: EditItemDialogProps) {
                 placeholder="0.00"
                 className="h-12 text-base pl-9"
               />
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Category</Label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={() => setCategory(category === c.label ? null : c.label)}
+                  className={cn(
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors",
+                    category === c.label
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted text-muted-foreground border-border hover:bg-accent"
+                  )}
+                >
+                  <span>{c.emoji}</span> {c.label}
+                </button>
+              ))}
             </div>
           </div>
 

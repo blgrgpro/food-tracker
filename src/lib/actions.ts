@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { sql } from "./db";
-import type { Item, Trip, TripItem, TripWithItems, MonthlyStats } from "./db";
+import type { Item, Trip, TripItem, TripWithItems, MonthlyStats, CategoryStat } from "./db";
 
 // ─── Items ────────────────────────────────────────────────────────────────────
 
@@ -16,13 +16,21 @@ export async function addItem(formData: FormData): Promise<void> {
   const quantity = (formData.get("quantity") as string) || null;
   const priceRaw = formData.get("price") as string;
   const price = priceRaw ? parseFloat(priceRaw) : null;
+  const category = (formData.get("category") as string) || null;
 
   if (!name?.trim()) return;
 
-  await sql`
-    INSERT INTO items (name, quantity, price, status)
-    VALUES (${name.trim()}, ${quantity?.trim() || null}, ${price ?? null}, 'pending')
-  `;
+  try {
+    await sql`
+      INSERT INTO items (name, quantity, price, category, status)
+      VALUES (${name.trim()}, ${quantity?.trim() || null}, ${price ?? null}, ${category}, 'pending')
+    `;
+  } catch {
+    await sql`
+      INSERT INTO items (name, quantity, price, status)
+      VALUES (${name.trim()}, ${quantity?.trim() || null}, ${price ?? null}, 'pending')
+    `;
+  }
   revalidatePath("/");
 }
 
@@ -46,12 +54,24 @@ export async function updateItem(
   id: number,
   name: string,
   quantity: string | null,
-  price: number | null
+  price: number | null,
+  category: string | null
 ): Promise<void> {
-  await sql`
-    UPDATE items SET name = ${name.trim()}, quantity = ${quantity?.trim() || null}, price = ${price}
-    WHERE id = ${id}
-  `;
+  try {
+    await sql`
+      UPDATE items SET
+        name = ${name.trim()},
+        quantity = ${quantity?.trim() || null},
+        price = ${price},
+        category = ${category}
+      WHERE id = ${id}
+    `;
+  } catch {
+    await sql`
+      UPDATE items SET name = ${name.trim()}, quantity = ${quantity?.trim() || null}, price = ${price}
+      WHERE id = ${id}
+    `;
+  }
   revalidatePath("/");
 }
 
@@ -88,10 +108,17 @@ export async function createTrip(formData: FormData): Promise<{ id: number }> {
   `;
   const tripId = (tripRows[0] as { id: number }).id;
 
-  await sql`
-    INSERT INTO trip_items (trip_id, item_name, quantity, price)
-    SELECT ${tripId}, name, quantity, price FROM items WHERE status = 'bought'
-  `;
+  try {
+    await sql`
+      INSERT INTO trip_items (trip_id, item_name, quantity, price, category)
+      SELECT ${tripId}, name, quantity, price, category FROM items WHERE status = 'bought'
+    `;
+  } catch {
+    await sql`
+      INSERT INTO trip_items (trip_id, item_name, quantity, price)
+      SELECT ${tripId}, name, quantity, price FROM items WHERE status = 'bought'
+    `;
+  }
 
   await sql`DELETE FROM items WHERE status = 'bought'`;
 
@@ -139,4 +166,22 @@ export async function getTotalStats(): Promise<{
     FROM trips
   `;
   return rows[0] as { total_trips: number; total_spent: number; avg_trip_cost: number };
+}
+
+export async function getCategoryStats(): Promise<CategoryStat[]> {
+  try {
+    const rows = await sql`
+      SELECT
+        COALESCE(category, 'Other') AS category,
+        SUM(price)::float           AS total,
+        COUNT(*)::int               AS item_count
+      FROM trip_items
+      WHERE price IS NOT NULL
+      GROUP BY COALESCE(category, 'Other')
+      ORDER BY total DESC
+    `;
+    return rows as CategoryStat[];
+  } catch {
+    return [];
+  }
 }
