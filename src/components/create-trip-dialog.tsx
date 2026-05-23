@@ -23,10 +23,13 @@ interface CreateTripDialogProps {
   onTripCreated: () => void;
 }
 
+const STORE_SUGGESTIONS = ["Lidl (Tripa)", "Lidl (Lanterna)", "Alepa (Oulunkylä)"];
+
 export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: CreateTripDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [storeName, setStoreName] = useState("");
   const router = useRouter();
 
   const autoSubtotal = boughtItems.reduce((sum, i) => {
@@ -49,7 +52,7 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setStoreName(""); }}>
       <DialogTrigger asChild>
         <Button size="sm" className="gap-1.5 rounded-xl">
           <ShoppingBag className="h-4 w-4" />
@@ -71,11 +74,29 @@ export function CreateTripDialog({ boughtCount, boughtItems, onTripCreated }: Cr
 
           <div className="grid gap-2">
             <Label htmlFor="store_name">Store name *</Label>
+            <div className="flex flex-wrap gap-2 mb-1">
+              {STORE_SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStoreName(s)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    storeName === s
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted text-muted-foreground border-border hover:bg-accent"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
             <Input
               id="store_name"
               name="store_name"
-              placeholder="e.g. Rewe, Aldi, Lidl"
+              placeholder="or type a store name"
               required
+              value={storeName}
+              onChange={(e) => setStoreName(e.target.value)}
               className="h-12 text-base"
             />
           </div>
