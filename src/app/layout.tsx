@@ -27,7 +27,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${poppins.variable} h-full antialiased`}>
-      <body className="min-h-full" style={{ background: "radial-gradient(ellipse at top, #166534 0%, #14532d 40%, #052e16 100%)" }}>
+      <body className="min-h-full" style={{
+          backgroundImage: "url('https://i.ibb.co/67WbjBnT/background.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}>
+        <div className="fixed inset-0 bg-black/50 -z-10" />
         <main className="mx-auto max-w-lg px-4 pt-6 pb-24">
           {children}
         </main>
